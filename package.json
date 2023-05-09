@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "aws-sdk": "^2.1374.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.1.1"
+  }
+}
