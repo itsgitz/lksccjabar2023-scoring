@@ -626,10 +626,15 @@ const util = require('util');
       lbTarget.TargetGroups.map(function (val) {
         console.log('-------------------------------------------')
         console.log(val.TargetGroupName);
+
+        if (val.Port == 80 || val.Port == 443) {
+          console.log(`ELB Target Group Score (${val.Port}): 1`);
+          score = score + 1;
+        }
+
         console.log(val.Protocol, val.Port);
-        console.log('-------------------------------------------')
+        console.log('-------------------------------------------') 
       });
-      console.log('ELB Target Group Score: 3');
     } else {
       console.log('ELB Target Group Score: 0')
     }
