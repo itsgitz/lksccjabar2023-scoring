@@ -20,10 +20,21 @@ const util = require('util');
 
   const tagKey = 'LKS-ID';
   const tagValueSuffix = 'MODUL3';
+  const ddbTableName = 'lksccjabar2023-dynamodb';
+  const ddbBilling = 'PAY_PER_REQUEST';
+  const ddbTableClass = 'STANDARD';
+  const rdsCluster = 'lksccjabar2023-rds';
+  const rdsEngine = 'aurora-postgresql';
+  const elbName = 'lksccjabar2023-elb';
+  const elbScheme = 'internet-facing';
   const line = '===============================================';
 
   var score = 0;
   var ec2 = new AWS.EC2({region: region});
+  var efs = new AWS.EFS({region: region});
+  var dynamoDb = new AWS.DynamoDB({region: region});
+  var rds = new AWS.RDS({region: region});
+  var elbv2 = new AWS.ELBv2({region: region});
 
   // VPC
   var vpc = await ec2.describeVpcs({
@@ -45,7 +56,7 @@ const util = require('util');
 
       if (cidr && cidr == '10.0.0.0/16') {
         console.log(cidr);
-        console.log('VPC Score: 3');
+        console.log('VPC Score: 1');
         score = score + 3;
       } else {
         console.log('VPC Score: 1');
@@ -334,6 +345,7 @@ const util = require('util');
   console.log(line);
   console.log();
 
+  // SECURITY GROUPS
   var webSecurityGroup = await ec2.describeSecurityGroups({
     Filters: [
       {
@@ -365,7 +377,172 @@ const util = require('util');
   console.log(line);
   console.log();
 
+  var bastionSecurityGroup = await ec2.describeSecurityGroups({
+    Filters: [
+      {
+        Name: `tag:${tagKey}`,
+        Values: [
+          `${tagValueSuffix}-SG-BASTION`
+        ]
+      }
+    ]
+  }).promise();
   console.log(line);
-  console.log('Total Score:', score);
+  try {
+    if (bastionSecurityGroup) {
+      console.log(util.inspect(bastionSecurityGroup, false, null, true));
+      let vpcId = bastionSecurityGroup.SecurityGroups[0].VpcId;
+      if (vpcId && vpcId == globalVpcId) {
+        console.log('Bastion Security Group Score: 3');
+        score = score + 3;
+      } else {
+        console.log('Bastion Security Group Score: 1');
+        score = score + 1;
+      }
+    } else {
+      console.log('Bastion Security Group Score: 0');
+    }
+  } catch (err) {
+    console.error('bastionSecurityGroup error', err);
+  }
+  console.log(line);
+  console.log();
+
+  // EFS 
+  var efsStorage = await efs.describeFileSystems({}).promise();
+  console.log(line)
+  try {
+    if (efsStorage) {
+      console.log(util.inspect(efsStorage, false, null, true));
+      efsStorage.FileSystems.map(function (tags) {
+        tags.Tags.map(function (val) {
+          if (val.Key == `${tagKey}` && val.Value == `${tagValueSuffix}-EFS`) {
+            console.log('EFS Score: 3');
+            score = score + 3;
+          }
+        });
+      });
+    } else {
+      console.log('EFS Score: 0');
+    }
+  } catch (err) {
+    console.error('efsStorage error', err);
+  }
+  console.log(line)
+  console.log()
+
+  // DynamoDB
+  var ddb = await dynamoDb.listTables({}).promise(); 
+  console.log(line)
+  try {
+    if (ddb) {
+      console.log(util.inspect(ddb, false, null, true));
+      let exceptedTable = ddb.TableNames.filter(function (el) {
+        return el === ddbTableName;
+      });
+      if (exceptedTable.length === 1) {
+        let describeDdb = await dynamoDb.describeTable({
+          TableName: exceptedTable[0]
+        }).promise();
+
+        let billing = describeDdb.Table.BillingModeSummary.BillingMode;
+        let tableClass = describeDdb.Table.TableClassSummary.TableClass;
+        if (billing == ddbBilling && tableClass == ddbTableClass) {
+          console.log('DynamoDB Score: 3');
+          score = score + 3;
+        } else {
+          console.log('DynamoDB Score: 1');
+          score = score + 1;
+        }
+      }
+    }
+  } catch (err) {
+    console.error('ddb error', err);
+  }
+  console.log(line)
+  console.log()
+
+  // RDS
+  var auroraRds = await rds.describeDBClusters({
+    Filters: [
+      {
+        Name: 'db-cluster-id',
+        Values: [
+          rdsCluster
+        ]
+      }
+    ]
+  }).promise();
+  console.log(line)
+  try {
+    console.log(util.inspect(auroraRds.DBClusters, false, null, true))
+    if (auroraRds) {
+      if (auroraRds.DBClusters[0].ServerlessV2ScalingConfiguration) {
+        if (auroraRds.DBClusters[0].Engine == rdsEngine) {
+          console.log('Amazon RDS Aurora Serverless Score: 3');
+          score = score + 3;
+        } else {
+          console.log('Amazon RDS Aurora Serverless Score: 1');
+          score = score + 1;
+        }
+      }
+    }
+  } catch (err) {
+    console.error('auroraRds error', err);
+  }
+  console.log(line)
+  console.log()
+
+  // EC2 Launch Templates
+  var ec2launchTemplates = await ec2.describeLaunchTemplates({
+    Filters: [
+      {
+        Name: `tag:${tagKey}`,
+        Values: [
+          `${tagValueSuffix}-EC2-LAUNCH-TEMPLATE`
+        ]
+      }
+    ]
+  }).promise();
+  console.log(line)
+  try {
+    if (ec2launchTemplates) {
+      console.log(util.inspect(ec2launchTemplates, false, null, true));
+      console.log('EC2 Launch Templates Score: 3');
+      score = score + 2;
+    }
+  } catch (err) {
+    console.error('ec2launchTemplates error:', err);
+  }
+  console.log(line)
+  console.log()
+  
+  // Elastic Load Balancer
+  var lb = await elbv2.describeLoadBalancers({
+    Names: [elbName]
+  }).promise()
+  console.log(line)
+  try {
+    if (lb) {
+      console.log(util.inspect(lb, false, null, true))
+      let vpcId = lb.LoadBalancers[0].VpcId;
+      let scheme = lb.LoadBalancers[0].Scheme;
+      let az = lb.LoadBalancers[0].AvailabilityZones;
+      if (vpcId == globalVpcId && scheme == elbScheme && az.length == 2) {
+        console.log('ELB Score: 3');
+        score = score + 3;
+      } else {
+        console.log('ELB Score: 1');
+        score = score + 1;
+      }
+    }
+  } catch (err) {
+    console.error('lb error', err)
+  }
+  console.log(line)
+  console.log()
+
+  console.log(line);
+  console.log('Total Score:', parseFloat(score / 2));
   console.log(line);
 })();
