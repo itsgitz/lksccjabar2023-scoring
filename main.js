@@ -75,7 +75,8 @@ const util = require('util');
       console.log('VPC Score: 0');
     }
   } catch (err) {
-    console.error('vpc error', err);
+    console.error('vpc error', err.message);
+    console.log('VPC Score: 0');
   }
   console.log(line);
   console.log();
@@ -115,7 +116,8 @@ const util = require('util');
       console.log('Public Subnet A Score: 0');
     }
   } catch (err) {
-    console.error('publicSubnetA error:', err);
+    console.error('publicSubnetA error:', err.message);
+    console.log('Public Subnet A Score: 0');
   }
   console.log(line);
   console.log();
@@ -151,7 +153,8 @@ const util = require('util');
       console.log('Public Subnet B Score: 0');
     }
   } catch (err) {
-    console.error('publicSubnetB error:', err);
+    console.error('publicSubnetB error:', err.message);
+    console.log('Public Subnet B Score: 0');
   }
   console.log(line);
   console.log();
@@ -188,7 +191,8 @@ const util = require('util');
       console.log('Private Subnet A Score: 0');
     }
   } catch (err) {
-    console.error('privateSubnetA error:', err);
+    console.error('privateSubnetA error:', err.message);
+    console.log('Private Subnet A Score: 0');
   }
   console.log(line);
   console.log();
@@ -225,7 +229,8 @@ const util = require('util');
       console.log('Private Subnet B Score: 0');
     }
   } catch (err) {
-    console.error('privateSubnetB error:', err);
+    console.error('privateSubnetB error:', err.message);
+    console.log('Private Subnet B Score: 0');
   }
   console.log(line);
   console.log();
@@ -259,7 +264,8 @@ const util = require('util');
       console.log('IGW Score: 0');
     }
   } catch (err) {
-    console.error('igw error', err);
+    console.error('igw error', err.message);
+    console.log('IGW Score: 0');
   }
   console.log(line);
   console.log();
@@ -294,7 +300,8 @@ const util = require('util');
       console.log('NAT Score: 0')
     }
   } catch (err) {
-    console.error('nat error', err);
+    console.error('nat error', err.message);
+    console.log('NAT Score: 0')
   }
   console.log(line);
   console.log();
@@ -330,7 +337,8 @@ const util = require('util');
       console.log('Public Route Table Score: 0');
     }
   } catch (err) {
-    console.error('publicRouteTable error', err);
+    console.error('publicRouteTable error', err.message);
+    console.log('Public Route Table Score: 0');
   }
   console.log(line);
   console.log();
@@ -366,7 +374,8 @@ const util = require('util');
       console.log('Private Route Table Score: 0');
     }
   } catch (err) {
-    console.error('privateRouteTable error', err);
+    console.error('privateRouteTable error', err.message);
+    console.log('Private Route Table Score: 0');
   }
   console.log(line);
   console.log();
@@ -402,7 +411,8 @@ const util = require('util');
       console.log('Web Security Group Score: 0');
     }
   } catch (err) {
-    console.error('webSecurityGroup error', err);
+    console.error('webSecurityGroup error', err.message);
+    console.log('Web Security Group Score: 0');
   }
   console.log(line);
   console.log();
@@ -436,7 +446,8 @@ const util = require('util');
       console.log('Bastion Security Group Score: 0');
     }
   } catch (err) {
-    console.error('bastionSecurityGroup error', err);
+    console.error('bastionSecurityGroup error', err.message);
+    console.log('Bastion Security Group Score: 0');
   }
   console.log(line);
   console.log();
@@ -461,7 +472,8 @@ const util = require('util');
       console.log('EFS Score: 0');
     }
   } catch (err) {
-    console.error('efsStorage error', err);
+    console.error('efsStorage error', err.message);
+    console.log('EFS Score: 0');
   }
   console.log(line)
   console.log()
@@ -490,10 +502,13 @@ const util = require('util');
           console.log('DynamoDB Score: 1');
           score = score + 1;
         }
+      } else {
+        console.log('DynamoDB Score: 0');
       }
     }
   } catch (err) {
-    console.error('ddb error', err);
+    console.error('ddb error', err.message);
+    console.log('DynamoDB Score: 0');
   }
   console.log(line)
   console.log()
@@ -512,7 +527,7 @@ const util = require('util');
       ]
     }).promise();
 
-    console.log('## RDS');
+    console.log('## Amazon RDS Aurora Serverless Score');
     //console.log(util.inspect(auroraRds.DBClusters, false, null, true))
     console.log(auroraRds.DBClusters[0].ServerlessV2ScalingConfiguration);
     console.log(auroraRds.DBClusters[0].Engine);
@@ -526,9 +541,11 @@ const util = require('util');
           score = score + 1;
         }
       }
+    } else {
+      console.log('Amazon RDS Aurora Serverless Score: 0');
     }
   } catch (err) {
-    console.error('auroraRds error', err);
+    console.error('auroraRds error', err.message);
   }
   console.log(line)
   console.log()
@@ -553,9 +570,12 @@ const util = require('util');
       console.log(ec2launchTemplates.LaunchTemplates[0].Tags);
       console.log('EC2 Launch Templates Score: 3');
       score = score + 3;
+    } else {
+      console.log('EC2 Launch Templates Score: 0');
     }
   } catch (err) {
-    console.error('ec2launchTemplates error:', err);
+    console.error('ec2launchTemplates error:', err.message);
+    console.log('EC2 Launch Templates Score: 0');
   }
   console.log(line)
   console.log()
@@ -587,7 +607,8 @@ const util = require('util');
       console.log('ELB Score: 0');
     }
   } catch (err) {
-    console.error('lb error', err)
+    console.error('lb error', err.message)
+    console.log('ELB Score: 0');
   }
   console.log(line)
   console.log()
@@ -613,7 +634,8 @@ const util = require('util');
       console.log('ELB Target Group Score: 0')
     }
   } catch (err) {
-    console.error('lbTarget error', err)
+    console.error('lbTarget error', err.message)
+    console.log('ELB Target Group Score: 0')
   }
   console.log(line)
   console.log()
@@ -651,7 +673,8 @@ const util = require('util');
       console.log('Auto Scaling Group Score: 0');
     }
   } catch (err) {
-    console.error('');
+    console.error('asg error', err.message);
+    console.log('Auto Scaling Group Score: 0');
   }
   console.log(line)
   console.log()
@@ -665,13 +688,14 @@ const util = require('util');
     console.log(dns.HostedZones[0].Name);
     //console.log(util.inspect(dns, false, null, true));
     if (dns) {
-      console.log('Route53 Score: 3');
-      score = score + 3;
+      console.log('Route53 Score: 1');
+      score = score + 1;
     } else {
       console.log('Route53 Score: 0');
     }
   } catch (err) {
-    console.error('dns error', err);
+    console.error('dns error', err.message);
+    console.log('Route53 Score: 0');
   }
   console.log(line);
   console.log();
@@ -685,13 +709,14 @@ const util = require('util');
       //console.log(util.inspect(cert, false, null, true));
       console.log(cert.CertificateSummaryList[0].CertificateArn);
       console.log(cert.CertificateSummaryList[0].DomainName);
-      console.log('ACM Score: 3');
-      score = score + 3;
+      console.log('ACM Score: 1');
+      score = score + 1;
     } else {
       console.log('ACM Score: 0');
     }
   } catch (err) {
-    console.error('cert error', err);
+    console.error('cert error', err.message);
+    console.log('ACM Score: 0');
   }
   console.log(line);
   console.log();
@@ -720,7 +745,8 @@ const util = require('util');
       console.log('EC2 Bastion Score: 0')
     }
   } catch (err) {
-    console.error('bastion error', err);
+    console.error('bastion error', err.message);
+    console.log('EC2 Bastion Score: 0')
   }
   console.log(line);
   console.log(); 
