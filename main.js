@@ -41,6 +41,7 @@ const util = require('util');
   var elbv2 = new AWS.ELBv2({region: region}); 
   var ec2Asg = new AWS.AutoScaling({region: region});
   var route53 = new AWS.Route53({region: region});
+  var acm = new AWS.ACM({region: region});
 
   console.log(line);
   try {
@@ -55,13 +56,16 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## VPC');
     if (vpc) {
-      console.log(util.inspect(vpc, false, null, true));
+      //console.log(util.inspect(vpc, false, null, true));
       let cidr = vpc.Vpcs[0].CidrBlock;
+      console.log(cidr);
 
       if (cidr && cidr == '10.0.0.0/16') {
         console.log(cidr);
-        console.log('VPC Score: 1');
+        console.log('VPC Score: 3');
         score = score + 3;
       } else {
         console.log('VPC Score: 1');
@@ -79,7 +83,7 @@ const util = require('util');
 
   // SUBNETS
   var globalVpcId = vpc.Vpcs[0].VpcId;
-  console.log('VPC ID: ', globalVpcId); 
+  console.log('## VPC ID: ', globalVpcId); 
   console.log(line);
   try {
     var publicSubnetA = await ec2.describeSubnets({
@@ -92,12 +96,13 @@ const util = require('util');
         }
       ]
     }).promise();
-    if (publicSubnetA) {
-      console.log(util.inspect(publicSubnetA, false, null, true));
 
+    console.log('## Public Subnet A');
+    if (publicSubnetA) {
+      //console.log(util.inspect(publicSubnetA, false, null, true));
       let cidr = publicSubnetA.Subnets[0].CidrBlock;
       let vpcId = publicSubnetA.Subnets[0].VpcId;
-      console.log(cidr);
+      console.log(cidr, vpcId);
 
       if (cidr && cidr == '10.0.0.0/24' && vpcId == globalVpcId) {
         console.log('Public Subnet A Score: 3');
@@ -127,12 +132,13 @@ const util = require('util');
         }
       ]
     }).promise();
-    if (publicSubnetB) {
-      console.log(util.inspect(publicSubnetB, false, null, true));
 
+    console.log('## Public Subnet B');
+    if (publicSubnetB) {
+      //console.log(util.inspect(publicSubnetB, false, null, true));
       let cidr = publicSubnetB.Subnets[0].CidrBlock;
       let vpcId = publicSubnetB.Subnets[0].VpcId;
-      console.log(cidr);
+      console.log(cidr, vpcId);
 
       if (cidr && cidr == '10.0.1.0/24' && vpcId == globalVpcId) {
         console.log('Public Subnet B Score: 3');
@@ -162,12 +168,14 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## Private Subnet A');
     if (privateSubnetA) {
-      console.log(util.inspect(privateSubnetA, false, null, true));
+      //console.log(util.inspect(privateSubnetA, false, null, true));
 
       let cidr = privateSubnetA.Subnets[0].CidrBlock;
       let vpcId = privateSubnetA.Subnets[0].VpcId;
-      console.log(cidr);
+      console.log(cidr, vpcId);
 
       if (cidr && cidr == '10.0.2.0/24' && vpcId == globalVpcId) {
         console.log('Private Subnet A Score: 3');
@@ -197,8 +205,10 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## Private Subnet B');
     if (privateSubnetB) {
-      console.log(util.inspect(privateSubnetB, false, null, true));
+      //console.log(util.inspect(privateSubnetB, false, null, true));
 
       let cidr = privateSubnetB.Subnets[0].CidrBlock;
       let vpcId = privateSubnetB.Subnets[0].VpcId; 
@@ -233,6 +243,8 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## Internet Gateway')
     if (igw) {
       console.log(util.inspect(igw, false, null, true))
       let vpcId = igw.InternetGateways[0].Attachments[0].VpcId;
@@ -265,8 +277,11 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## NAT Gateway');
     if (nat) {
-      console.log(util.inspect(nat, false, null, true));
+      //console.log(util.inspect(nat, false, null, true));
+      console.log(nat.NatGateways[0].NatGatewayAddresses);
       let vpcId = nat.NatGateways[0].VpcId;
       if (vpcId && vpcId == globalVpcId) {
         console.log('NAT Score: 3');
@@ -297,10 +312,13 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## Public Routes Table');
     if (publicRouteTable) {
-      console.log(util.inspect(publicRouteTable, false, null, true));
+      //console.log(util.inspect(publicRouteTable, false, null, true));
       let vpcId = publicRouteTable.RouteTables[0].VpcId
 
+      console.log(publicRouteTable.RouteTables[0].Associations);
       if (vpcId && vpcId == globalVpcId) {
         console.log('Public Route Table Score: 3');
         score = score + 3;
@@ -330,10 +348,13 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## Private Routes Table')
     if (privateRouteTable) {
-      console.log(util.inspect(privateRouteTable, false, null, true));
+      //console.log(util.inspect(privateRouteTable, false, null, true));
       let vpcId = privateRouteTable.RouteTables[0].VpcId
 
+      console.log(privateRouteTable.RouteTables[0].Associations);
       if (vpcId && vpcId == globalVpcId) {
         console.log('Private Route Table Score: 3');
         score = score + 3;
@@ -363,8 +384,12 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## Web Security Group');
     if (webSecurityGroup) {
-      console.log(util.inspect(webSecurityGroup, false, null, true));
+      //console.log(util.inspect(webSecurityGroup, false, null, true));
+      console.log(util.inspect(webSecurityGroup.SecurityGroups[0].IpPermissions));
+
       let vpcId = webSecurityGroup.SecurityGroups[0].VpcId;
       if (vpcId && vpcId == globalVpcId) {
         console.log('Web Security Group Score: 3');
@@ -394,8 +419,11 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## Bastion Security Group')
     if (bastionSecurityGroup) {
-      console.log(util.inspect(bastionSecurityGroup, false, null, true));
+      //console.log(util.inspect(bastionSecurityGroup, false, null, true));
+      console.log(util.inspect(bastionSecurityGroup.SecurityGroups[0].IpPermissions));
       let vpcId = bastionSecurityGroup.SecurityGroups[0].VpcId;
       if (vpcId && vpcId == globalVpcId) {
         console.log('Bastion Security Group Score: 3');
@@ -417,11 +445,13 @@ const util = require('util');
   try {
     // EFS 
     var efsStorage = await efs.describeFileSystems({}).promise();
+    console.log('## EFS');
     if (efsStorage) {
-      console.log(util.inspect(efsStorage, false, null, true));
+      //console.log(util.inspect(efsStorage, false, null, true));
       efsStorage.FileSystems.map(function (tags) {
         tags.Tags.map(function (val) {
           if (val.Key == `${tagKey}` && val.Value == `${tagValueSuffix}-EFS`) {
+            console.log(val.Key, val.Value);
             console.log('EFS Score: 3');
             score = score + 3;
           }
@@ -440,11 +470,12 @@ const util = require('util');
   try {
     // DynamoDB
     var ddb = await dynamoDb.listTables({}).promise();
+    console.log('## DynamoDB');
     if (ddb) {
-      console.log(util.inspect(ddb, false, null, true));
       let exceptedTable = ddb.TableNames.filter(function (el) {
         return el === ddbTableName;
       });
+      console.log(exceptedTable);
       if (exceptedTable.length === 1) {
         let describeDdb = await dynamoDb.describeTable({
           TableName: exceptedTable[0]
@@ -480,7 +511,11 @@ const util = require('util');
         }
       ]
     }).promise();
-    console.log(util.inspect(auroraRds.DBClusters, false, null, true))
+
+    console.log('## RDS');
+    //console.log(util.inspect(auroraRds.DBClusters, false, null, true))
+    console.log(auroraRds.DBClusters[0].ServerlessV2ScalingConfiguration);
+    console.log(auroraRds.DBClusters[0].Engine);
     if (auroraRds) {
       if (auroraRds.DBClusters[0].ServerlessV2ScalingConfiguration) {
         if (auroraRds.DBClusters[0].Engine == rdsEngine) {
@@ -511,10 +546,13 @@ const util = require('util');
         }
       ]
     }).promise();
+
+    console.log('## EC2 Launch Templates')
     if (ec2launchTemplates) {
-      console.log(util.inspect(ec2launchTemplates, false, null, true));
+      console.log(ec2launchTemplates.LaunchTemplates[0].LaunchTemplateName);
+      console.log(ec2launchTemplates.LaunchTemplates[0].Tags);
       console.log('EC2 Launch Templates Score: 3');
-      score = score + 2;
+      score = score + 3;
     }
   } catch (err) {
     console.error('ec2launchTemplates error:', err);
@@ -528,8 +566,13 @@ const util = require('util');
     var lb = await elbv2.describeLoadBalancers({
       Names: [elbName]
     }).promise()
+
+    console.log('## ELB')
     if (lb) {
-      console.log(util.inspect(lb, false, null, true))
+      //console.log(util.inspect(lb, false, null, true))
+      console.log(lb.LoadBalancers[0].LoadBalancerName);
+      console.log(lb.LoadBalancers[0].Scheme);
+
       let vpcId = lb.LoadBalancers[0].VpcId;
       let scheme = lb.LoadBalancers[0].Scheme;
       let az = lb.LoadBalancers[0].AvailabilityZones;
@@ -555,8 +598,16 @@ const util = require('util');
     var lbTarget = await elbv2.describeTargetGroups({
       Names: [elbTarget]
     }).promise();
+
+    console.log('## ELB Target');
     if (elbTarget) {
-      console.log(util.inspect(lbTarget, false, null, true))
+      //console.log(util.inspect(lbTarget, false, null, true))
+      lbTarget.TargetGroups.map(function (val) {
+        console.log('-------------------------------------------')
+        console.log(val.TargetGroupName);
+        console.log(val.Protocol, val.Port);
+        console.log('-------------------------------------------')
+      });
       console.log('ELB Target Group Score: 3');
     } else {
       console.log('ELB Target Group Score: 0')
@@ -567,7 +618,7 @@ const util = require('util');
   console.log(line)
   console.log()
 
-
+  // ASG
   console.log(line)
   try {
     var asg = await ec2Asg.describeAutoScalingGroups({
@@ -581,8 +632,10 @@ const util = require('util');
       ]
     }).promise();
 
+    console.log('## Auto Scaling Group');
     if (asg) {
-      console.log(util.inspect(asg, false, null, true));
+      //console.log(util.inspect(asg, false, null, true));
+      console.log(util.inspect(asg.AutoScalingGroups[0].Instances, false, null, true));
       let desiredCapacity = asg.AutoScalingGroups[0].DesiredCapacity;
       let min = asg.AutoScalingGroups[0].MinSize;
       let max = asg.AutoScalingGroups[0].MaxSize;
@@ -603,10 +656,14 @@ const util = require('util');
   console.log(line)
   console.log()
 
+  // Route53
   console.log(line);
   try {
     var dns = await route53.listHostedZones({}).promise();
-    console.log(util.inspect(dns, false, null, true));
+    
+    console.log('## Route53');
+    console.log(dns.HostedZones[0].Name);
+    //console.log(util.inspect(dns, false, null, true));
     if (dns) {
       console.log('Route53 Score: 3');
       score = score + 3;
@@ -614,10 +671,59 @@ const util = require('util');
       console.log('Route53 Score: 0');
     }
   } catch (err) {
-    console.error();
+    console.error('dns error', err);
   }
   console.log(line);
   console.log();
+
+  // ACM
+  console.log(line);
+  try {
+    var cert = await acm.listCertificates({}).promise();
+    console.log('## ACM');
+    if (cert) {
+      //console.log(util.inspect(cert, false, null, true));
+      console.log(cert.CertificateSummaryList[0].CertificateArn);
+      console.log(cert.CertificateSummaryList[0].DomainName);
+      console.log('ACM Score: 3');
+      score = score + 3;
+    } else {
+      console.log('ACM Score: 0');
+    }
+  } catch (err) {
+    console.error('cert error', err);
+  }
+  console.log(line);
+  console.log();
+
+  // EC2 Bastion Host
+  console.log(line);
+  try {
+    var bastion = await ec2.describeInstances({
+      Filters: [
+        {
+          Name: `tag:${tagKey}`,
+          Values: [
+            `${tagValueSuffix}-BASTION`
+          ]
+        }
+      ]
+    }).promise();
+
+    console.log('## EC2 Bastion');
+    //console.log(util.inspect(bastion, false, null, true));
+    console.log(bastion.Reservations[0].Instances[0].InstanceType);
+    if (bastion) {
+      console.log('EC2 Bastion Score: 3');
+      score = score + 3;
+    } else {
+      console.log('EC2 Bastion Score: 0')
+    }
+  } catch (err) {
+    console.error('bastion error', err);
+  }
+  console.log(line);
+  console.log(); 
 
   console.log(line);
   console.log('Total Score:', parseFloat(score / 2));
