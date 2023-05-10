@@ -34,6 +34,7 @@ const util = require('util');
   const line = '===============================================';
 
   var score = 0;
+  var listScore = [];
   var ec2 = new AWS.EC2({region: region});
   var efs = new AWS.EFS({region: region});
   var dynamoDb = new AWS.DynamoDB({region: region});
@@ -67,16 +68,20 @@ const util = require('util');
         console.log(cidr);
         console.log('VPC Score: 3');
         score = score + 3;
+        listScore.push(3);
       } else {
         console.log('VPC Score: 1');
         score = score + 1;
+        listScore.push(1);
       }
     } else {
       console.log('VPC Score: 0');
+      listScore.push(0);
     }
   } catch (err) {
     console.error('vpc error', err.message);
     console.log('VPC Score: 0');
+    listScore.push(0);
   }
   console.log(line);
   console.log();
@@ -108,16 +113,20 @@ const util = require('util');
       if (cidr && cidr == '10.0.0.0/24' && vpcId == globalVpcId) {
         console.log('Public Subnet A Score: 3');
         score = score + 3
+        listScore.push(3);
       } else {
         console.log('Public Subnet A Score: 1');
         score = score + 1;
+        listScore.push(1);
       }
     } else {
       console.log('Public Subnet A Score: 0');
+      listScore.push(0);
     }
   } catch (err) {
     console.error('publicSubnetA error:', err.message);
     console.log('Public Subnet A Score: 0');
+    listScore.push(0);
   }
   console.log(line);
   console.log();
@@ -145,12 +154,15 @@ const util = require('util');
       if (cidr && cidr == '10.0.1.0/24' && vpcId == globalVpcId) {
         console.log('Public Subnet B Score: 3');
         score = score + 3
+        listScore.push(3);
       } else {
         console.log('Public Subnet B Score: 1');
         score = score + 1;
+        listScore.push(1);
       }
     } else {
       console.log('Public Subnet B Score: 0');
+      listScore.push(0);
     }
   } catch (err) {
     console.error('publicSubnetB error:', err.message);
@@ -183,16 +195,20 @@ const util = require('util');
       if (cidr && cidr == '10.0.2.0/24' && vpcId == globalVpcId) {
         console.log('Private Subnet A Score: 3');
         score = score + 3
+        listScore.push(3);
       } else {
         console.log('Private Subnet A Score: 1');
         score = score + 1;
+        listScore.push(1)
       }
     } else {
       console.log('Private Subnet A Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('privateSubnetA error:', err.message);
     console.log('Private Subnet A Score: 0');
+    listScore.push(0)
   }
   console.log(line);
   console.log();
@@ -221,9 +237,11 @@ const util = require('util');
       if (cidr && cidr == '10.0.3.0/24' && vpcId == globalVpcId) {
         console.log('Private Subnet B Score: 3');
         score = score + 3
+        listScore.push(3)
       } else {
         console.log('Private Subnet B Score: 1');
         score = score + 1;
+        listScore.push(1)
       }
     } else {
       console.log('Private Subnet B Score: 0');
@@ -256,16 +274,20 @@ const util = require('util');
       if (vpcId && vpcId == globalVpcId) {
         console.log('IGW Score: 3');
         score = score + 3;
+        listScore.push(3);
       } else {
         console.log('IGW Score: 1');
         score = score + 1;
+        listScore.push(1)
       }
     } else {
       console.log('IGW Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('igw error', err.message);
     console.log('IGW Score: 0');
+    listScore.push(0); 
   }
   console.log(line);
   console.log();
@@ -292,16 +314,20 @@ const util = require('util');
       if (vpcId && vpcId == globalVpcId) {
         console.log('NAT Score: 3');
         score = score + 3;
+        listScore.push(3)
       } else {
         console.log('NAT Score: 1');
         score = score + 1;
+        listScore.push(1)
       }
     } else {
       console.log('NAT Score: 0')
+      listScore.push(0)
     }
   } catch (err) {
     console.error('nat error', err.message);
     console.log('NAT Score: 0')
+    listScore.push(0)
   }
   console.log(line);
   console.log();
@@ -329,16 +355,20 @@ const util = require('util');
       if (vpcId && vpcId == globalVpcId) {
         console.log('Public Route Table Score: 3');
         score = score + 3;
+        listScore.push(3)
       } else {
         console.log('Public Route Table Score: 1');
         score = score + 1;
+        listScore.pop(1)
       }
     } else {
       console.log('Public Route Table Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('publicRouteTable error', err.message);
     console.log('Public Route Table Score: 0');
+    listScore.push(0)
   }
   console.log(line);
   console.log();
@@ -366,16 +396,20 @@ const util = require('util');
       if (vpcId && vpcId == globalVpcId) {
         console.log('Private Route Table Score: 3');
         score = score + 3;
+        listScore.push(3)
       } else {
         console.log('Private Route Table Score: 1');
         score = score + 1;
+        listScore.push(1)
       }
     } else {
       console.log('Private Route Table Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('privateRouteTable error', err.message);
     console.log('Private Route Table Score: 0');
+    listScore.push(0)
   }
   console.log(line);
   console.log();
@@ -403,16 +437,20 @@ const util = require('util');
       if (vpcId && vpcId == globalVpcId) {
         console.log('Web Security Group Score: 3');
         score = score + 3;
+        listScore.push(3)
       } else {
         console.log('Web Security Group Score: 1');
         score = score + 1;
+        listScore.push(1)
       }
     } else {
       console.log('Web Security Group Score: 0');
+      listScore.push(0) 
     }
   } catch (err) {
     console.error('webSecurityGroup error', err.message);
     console.log('Web Security Group Score: 0');
+    listScore.push(0)
   }
   console.log(line);
   console.log();
@@ -438,16 +476,20 @@ const util = require('util');
       if (vpcId && vpcId == globalVpcId) {
         console.log('Bastion Security Group Score: 3');
         score = score + 3;
+        listScore.push(3)
       } else {
         console.log('Bastion Security Group Score: 1');
         score = score + 1;
+        listScore.push(1);
       }
     } else {
       console.log('Bastion Security Group Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('bastionSecurityGroup error', err.message);
     console.log('Bastion Security Group Score: 0');
+    listScore.push(0)
   }
   console.log(line);
   console.log();
@@ -465,15 +507,18 @@ const util = require('util');
             console.log(val.Key, val.Value);
             console.log('EFS Score: 3');
             score = score + 3;
+            listScore.push(3)
           }
         });
       });
     } else {
       console.log('EFS Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('efsStorage error', err.message);
     console.log('EFS Score: 0');
+    listScore.push(0)
   }
   console.log(line)
   console.log()
@@ -498,17 +543,21 @@ const util = require('util');
         if (billing == ddbBilling && tableClass == ddbTableClass) {
           console.log('DynamoDB Score: 3');
           score = score + 3;
+          listScore.push(3)
         } else {
           console.log('DynamoDB Score: 1');
           score = score + 1;
+          listScore.push(1)
         }
       } else {
         console.log('DynamoDB Score: 0');
+        listScore.push(0)
       }
     }
   } catch (err) {
     console.error('ddb error', err.message);
     console.log('DynamoDB Score: 0');
+    listScore.push(0)
   }
   console.log(line)
   console.log()
@@ -536,16 +585,20 @@ const util = require('util');
         if (auroraRds.DBClusters[0].Engine == rdsEngine) {
           console.log('Amazon RDS Aurora Serverless Score: 3');
           score = score + 3;
+          listScore.push(3)
         } else {
           console.log('Amazon RDS Aurora Serverless Score: 1');
           score = score + 1;
+          listScore.push(1)
         }
       }
     } else {
       console.log('Amazon RDS Aurora Serverless Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('auroraRds error', err.message);
+    listScore.push(0)
   }
   console.log(line)
   console.log()
@@ -570,12 +623,15 @@ const util = require('util');
       console.log(ec2launchTemplates.LaunchTemplates[0].Tags);
       console.log('EC2 Launch Templates Score: 3');
       score = score + 3;
+      listScore.push(3)
     } else {
       console.log('EC2 Launch Templates Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('ec2launchTemplates error:', err.message);
     console.log('EC2 Launch Templates Score: 0');
+    listScore.push(0)
   }
   console.log(line)
   console.log()
@@ -599,16 +655,20 @@ const util = require('util');
       if (vpcId == globalVpcId && scheme == elbScheme && az.length == 2) {
         console.log('ELB Score: 3');
         score = score + 3;
+        listScore.push(3)
       } else {
         console.log('ELB Score: 1');
         score = score + 1;
+        listScore.push(1)
       }
     } else {
       console.log('ELB Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('lb error', err.message)
     console.log('ELB Score: 0');
+    listScore.push(0)
   }
   console.log(line)
   console.log()
@@ -630,6 +690,7 @@ const util = require('util');
         if (val.Port == 80 || val.Port == 443) {
           console.log(`ELB Target Group Score (${val.Port}): 1`);
           score = score + 1;
+          listScore.push(1)
         }
 
         console.log(val.Protocol, val.Port);
@@ -637,10 +698,12 @@ const util = require('util');
       });
     } else {
       console.log('ELB Target Group Score: 0')
+      listScore.push(0)
     }
   } catch (err) {
     console.error('lbTarget error', err.message)
     console.log('ELB Target Group Score: 0')
+    listScore.push(0)
   }
   console.log(line)
   console.log()
@@ -670,16 +733,20 @@ const util = require('util');
       if (desiredCapacity == asgDesiredCapacity && min == asgMin && max == asgMax) {
         console.log('Auto Scaling Group Score: 3');
         score = score + 3;
+        listScore.push(3)
       } else {
         console.log('Auto Scaling Group Score: 1');
         score = score + 1;
+        listScore.push(1)
       }
     } else {
       console.log('Auto Scaling Group Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('asg error', err.message);
     console.log('Auto Scaling Group Score: 0');
+    listScore.push(0)
   }
   console.log(line)
   console.log()
@@ -695,12 +762,15 @@ const util = require('util');
     if (dns) {
       console.log('Route53 Score: 1');
       score = score + 1;
+      listScore.push(1)
     } else {
       console.log('Route53 Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('dns error', err.message);
     console.log('Route53 Score: 0');
+    listScore.push(0)
   }
   console.log(line);
   console.log();
@@ -716,12 +786,15 @@ const util = require('util');
       console.log(cert.CertificateSummaryList[0].DomainName);
       console.log('ACM Score: 1');
       score = score + 1;
+      listScore.push(1)
     } else {
       console.log('ACM Score: 0');
+      listScore.push(0)
     }
   } catch (err) {
     console.error('cert error', err.message);
     console.log('ACM Score: 0');
+    listScore.push(0)
   }
   console.log(line);
   console.log();
@@ -746,17 +819,21 @@ const util = require('util');
     if (bastion) {
       console.log('EC2 Bastion Score: 3');
       score = score + 3;
+      listScore.push(3)
     } else {
       console.log('EC2 Bastion Score: 0')
+      listScore.push(0)
     }
   } catch (err) {
     console.error('bastion error', err.message);
     console.log('EC2 Bastion Score: 0')
+    listScore.push(0)
   }
   console.log(line);
   console.log(); 
 
   console.log(line);
+  console.log('List Score:', listScore);
   console.log('Total Score:', parseFloat(score / 2));
   console.log(line);
 })();
